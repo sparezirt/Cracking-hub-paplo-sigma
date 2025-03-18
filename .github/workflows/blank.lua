@@ -163,4 +163,131 @@ folder2:AddSwitch("Unable Trade", function(State)
         game:GetService("ReplicatedStorage").rEvents.tradingEvent:FireServer("enableTrading")
     end
 end)
-
+        
+-- Hide Pets Toggle
+ folder2:AddSwitch("Hide Pets", function(State)
+     if State then
+         game:GetService("ReplicatedStorage").rEvents.showPetsEvent:FireServer("hidePets")
+     else
+         game:GetService("ReplicatedStorage").rEvents.showPetsEvent:FireServer("showPets")
+     end
+ end)
+ 
+ -- Auto Farm Tab
+ local AutoFarm = window:AddTab("Auto Farm")
+ AutoFarm:AddLabel("Area Farming (More Coming Soon)")
+ local folder3 = AutoFarm:AddFolder("Jungle Farming")
+ 
+ -- Auto Jungle Bench Toggle
+ local jungleBenchToggle = false
+ folder3:AddSwitch("Auto Jungle Bench", function(State)
+     jungleBenchToggle = State
+     if State then
+         task.spawn(function()
+             while jungleBenchToggle do
+                 game.Players.LocalPlayer.Character:SetPrimaryPartCFrame(CFrame.new(-8629.88086, 64.8842468, 1855.03467))
+                 game:GetService("ReplicatedStorage").rEvents.machineInteractRemote:InvokeServer("useMachine", workspace.machinesFolder["Jungle Bench"].interactSeat)
+                 task.wait(0.1)
+             end
+         end)
+     end
+ end)
+ 
+ -- Auto Jungle Bar Lift Toggle
+ local jungleBarLiftToggle = false
+ folder3:AddSwitch("Auto Jungle Bar Lift", function(State)
+     jungleBarLiftToggle = State
+     if State then
+         task.spawn(function()
+             while jungleBarLiftToggle do
+                 game.Players.LocalPlayer.Character:SetPrimaryPartCFrame(CFrame.new(-8678.05566, 14.5030098, 2089.25977))
+                 game:GetService("ReplicatedStorage").rEvents.machineInteractRemote:InvokeServer("useMachine", workspace.machinesFolder["Jungle Bar Lift"].interactSeat)
+                 task.wait(0.1)
+             end
+         end)
+     end
+ end)
+ 
+ -- Auto Jungle Squat Toggle
+ local jungleSquatToggle = false
+ folder3:AddSwitch("Auto Jungle Squat", function(State)
+     jungleSquatToggle = State
+     if State then
+         task.spawn(function()
+             while jungleSquatToggle do
+                 game.Players.LocalPlayer.Character:SetPrimaryPartCFrame(CFrame.new(-8374.25586, 34.5933418, 2932.44995))
+                 game:GetService("ReplicatedStorage").rEvents.machineInteractRemote:InvokeServer("useMachine", workspace.machinesFolder["Jungle Squat"].interactSeat)
+                 task.wait(0.1)
+             end
+         end)
+     end
+ end)
+ 
+ AutoFarm:AddLabel("Reps")
+ 
+ -- Auto Rep Toggle
+ local autoRepToggle = false
+ AutoFarm:AddSwitch("Auto Rep", function(State)
+     autoRepToggle = State
+     if State then
+         task.spawn(function()
+             while autoRepToggle do
+                 game:GetService("Players").LocalPlayer:WaitForChild("muscleEvent"):FireServer("rep")
+                 task.wait(0.1)
+             end
+         end)
+     end
+ end)
+ 
+ AutoFarm:AddLabel("Tools")
+ 
+ -- Auto Equip Weight Toggle
+ local equipWeightToggle = false
+ AutoFarm:AddSwitch("Auto Equip Weight", function(State)
+     equipWeightToggle = State
+     if State then
+         task.spawn(function()
+             while equipWeightToggle do
+                 local weightTool = game.Players.LocalPlayer.Backpack:FindFirstChild("Weight")
+                 if weightTool then
+                     weightTool.Parent = game.Players.LocalPlayer.Character
+                 end
+                 task.wait(0.1)
+             end
+         end)
+     end
+ end)
+ 
+ -- Auto Equip Pushups Toggle
+ local equipPushupsToggle = false
+ AutoFarm:AddSwitch("Auto Equip Pushups", function(State)
+     equipPushupsToggle = State
+     if State then
+         task.spawn(function()
+             while equipPushupsToggle do
+                 local pushupsTool = game.Players.LocalPlayer.Backpack:FindFirstChild("Pushups")
+                 if pushupsTool then
+                     pushupsTool.Parent = game.Players.LocalPlayer.Character
+                 end
+                 task.wait(0.1)
+             end
+         end)
+     end
+ end)
+ 
+ -- Auto Equip Situps Toggle
+ local equipSitupsToggle = false
+ AutoFarm:AddSwitch("Auto Equip Situps", function(State)
+     equipSitupsToggle = State
+     if State then
+         task.spawn(function()
+             while equipSitupsToggle do
+                 local situpsTool = game.Players.LocalPlayer.Backpack:FindFirstChild("Situps")
+                 if situpsTool then
+                     situpsTool.Parent = game.Players.LocalPlayer.Character
+                 end
+                 task.wait(0.1)
+             end
+         end)
+     end
+ end)
