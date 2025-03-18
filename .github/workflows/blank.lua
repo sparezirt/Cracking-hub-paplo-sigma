@@ -291,3 +291,113 @@ end)
          end)
      end
  end)
+        
+-- Auto Equip Handstand Toggle
+ local equipHandstandToggle = false
+ AutoFarm:AddSwitch("Auto Equip Handstand", function(State)
+     equipHandstandToggle = State
+     if State then
+         task.spawn(function()
+             while equipHandstandToggle do
+                 local handstandTool = game.Players.LocalPlayer.Backpack:FindFirstChild("Handstand")
+                 if handstandTool then
+                     handstandTool.Parent = game.Players.LocalPlayer.Character
+                 end
+                 task.wait(0.1)
+             end
+         end)
+     end
+ end)
+ 
+ local Eggs = window:AddTab("Eggs")
+ 
+ local selectedCrystal = "Galaxy Oracle Crystal" -- Default selected crystal
+ local autoCrystalRunning = false
+ 
+ -- Dropdown for selecting a crystal
+ local dropdown = Eggs:AddDropdown("Select Crystal", function(text)
+     selectedCrystal = text  -- Store selected crystal name
+ end)
+ 
+ -- Add crystal options to dropdown
+ local crystalNames = {
+     "Blue Crystal", "Green Crystal", "Frozen Crystal", "Mythical Crystal",
+     "Inferno Crystal", "Legends Crystal", "Muscle Elite Crystal",
+     "Galaxy Oracle Crystal", "Sky Eclipse Crystal", "Jungle Crystal"
+ }
+ 
+ for _, name in ipairs(crystalNames) do
+     dropdown:Add(name)
+ end
+ 
+ -- Function to auto open selected crystal
+ local function autoOpenCrystal()
+     while autoCrystalRunning do
+         game:GetService("ReplicatedStorage"):WaitForChild("rEvents"):WaitForChild("openCrystalRemote"):InvokeServer("openCrystal", selectedCrystal)
+         wait(0.1) -- 0.1-second delay before opening again
+     end
+ end
+ 
+ -- Toggle switch
+ local switch = Eggs:AddSwitch("Auto Crystal", function(state)
+     autoCrystalRunning = state
+ 
+     if autoCrystalRunning then
+         task.spawn(autoOpenCrystal) -- Start auto-opening crystals
+     end
+ end)
+ 
+ local Killing = window:AddTab("Killing")
+ 
+ Killing:AddLabel("Whitelisting")
+ 
+ local whitelist = {} -- Table to store whitelisted players
+ 
+ -- Create the Whitelist Textbox
+ Killing:AddTextBox("Whitelist", function(text)
+     local targetPlayer = game.Players:FindFirstChild(text)
+     if targetPlayer then
+         whitelist[targetPlayer.Name] = true
+     end
+ end)
+ 
+ -- Create the UnWhitelist Textbox
+ Killing:AddTextBox("UnWhitelist", function(text)
+     local targetPlayer = game.Players:FindFirstChild(text)
+     if targetPlayer then
+         whitelist[targetPlayer.Name] = nil
+     end
+ end)
+ 
+ Killing:AddLabel("Auto Killing")
+ 
+ -- Auto Kill Toggle
+ local autoKill = false
+ Killing:AddSwitch("Auto Kill", function(bool)
+     autoKill = bool -- Control variable
+ 
+     while autoKill do
+         local player = game.Players.LocalPlayer
+ 
+         for _, target in ipairs(game.Players:GetPlayers()) do
+             if target ~= player and not whitelist[target.Name] then -- Exclude whitelisted players and the local player
+                 local targetChar = target.Character
+                 local rootPart = targetChar and targetChar:FindFirstChild("HumanoidRootPart")
+ 
+                 if rootPart then
+                     local rightHand = player.Character and player.Character:FindFirstChild("RightHand")
+                     local leftHand = player.Character and player.Character:FindFirstChild("LeftHand")
+ 
+                     if rightHand and leftHand then
+                         firetouchinterest(rightHand, rootPart, 1) -- Start touch event
+                         firetouchinterest(leftHand, rootPart, 1)
+                         firetouchinterest(rightHand, rootPart, 0) -- End touch event
+                         firetouchinterest(leftHand, rootPart, 0)
+                     end
+                 end
+             end
+         end
+ 
+         wait(0.1) -- Adjust the delay for optimized performance
+     end
+ end)
