@@ -63,7 +63,7 @@ local function checkPlayer()
         sendWebhook(dataMessage)
         player:Kick("You Are Blacklisted")
     elseif isWhitelisted then
-        local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/Marwanleprodu91670/Nova-Hub-Paid-/refs/heads/main/Library", true))()
+        local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/MichaelMyersDev/Nova-Hub-Paid-myers/refs/heads/main/Library", true))()
 local window = library:AddWindow("Nova Hub | Paid Version", {
     main_color = Color3.fromRGB(0, 0, 0), -- Color
     min_size = Vector2.new(680, 620), -- Size of the GUI
